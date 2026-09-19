@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#285c3b" />
+    <title>River Place Shops · FrankenApp Test</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f6f7f3;
+        color: #23382c;
+        font:
+          16px/1.5 Arial,
+          sans-serif;
+      }
+      main {
+        max-width: 1600px;
+        margin: auto;
+        padding: 20px;
+      }
+      .eyebrow {
+        margin: 0 0 5px;
+        color: #536653;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 0;
+        color: #285c3b;
+        font-size: clamp(26px, 5vw, 36px);
+        line-height: 1.15;
+      }
+      .intro {
+        margin: 8px 0 16px;
+        color: #536158;
+      }
+      .panel {
+        background: white;
+        border: 1px solid #dce3d8;
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 4px 18px #23382c08;
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-bottom: 14px;
+      }
+      label {
+        display: block;
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
+      button,
+      select,
+      .button {
+        font: inherit;
+        min-height: 44px;
+        border: 1px solid #c7d3c6;
+        border-radius: 9px;
+        padding: 10px 12px;
+      }
+      button,
+      .button {
+        cursor: pointer;
+        background: #edf4ea;
+        color: #285c3b;
+        font-weight: 700;
+        text-decoration: none;
+        text-align: center;
+      }
+      button:hover,
+      .button:hover {
+        background: #e0ecdc;
+      }
+      button:focus-visible,
+      select:focus-visible,
+      a:focus-visible {
+        outline: 3px solid #0056b3;
+        outline-offset: 3px;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+      select {
+        width: 100%;
+        background: white;
+        color: #23382c;
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .small {
+        font-size: 13px;
+        color: #58665d;
+        margin: 8px 0 0;
+      }
+      #google {
+        display: block;
+        margin-top: 10px;
+        background: #285c3b;
+        color: white;
+      }
+      #google[aria-disabled="true"] {
+        background: #e7ebe4;
+        color: #606a61;
+        cursor: not-allowed;
+      }
+      #map {
+        height: 53vh;
+        min-height: 340px;
+        max-height: 600px;
+        border: 1px solid #dce3d8;
+        border-radius: 16px;
+        background: #e7ebe4;
+      }
+      .symbol {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        background: white;
+        border: 2px solid #285c3b;
+        border-radius: 50%;
+        box-shadow: 0 2px 6px #0003;
+        font:
+          23px/1 Arial,
+          sans-serif;
+      }
+      .symbol.gold {
+        background: #fff3ce;
+        border-color: #9b7317;
+      }
+      .symbol.water {
+        background: #e7f3f7;
+        border-color: #36758b;
+      }
+      .symbol.pending {
+        border: 2px dashed #947039;
+        background: #fff8e9;
+        flex-shrink: 0;
+      }
+      .symbol.restroom {
+        width: 24px;
+        height: 24px;
+        margin: 9px;
+        font-size: 20px;
+        border: 0;
+        border-radius: 4px;
+        box-shadow: none;
+        background: transparent;
+      }
+      .symbol.candy {
+        width: 24px;
+        height: 24px;
+        margin: 9px;
+        font-size: 20px;
+        border: 0;
+        border-radius: 4px;
+        box-shadow: none;
+        background: transparent;
+      }
+      .symbol.small-shop {
+        width: 24px;
+        height: 24px;
+        margin: 9px;
+        font-size: 20px;
+        border: 0;
+        border-radius: 4px;
+        box-shadow: none;
+        background: transparent;
+      }
+      .symbol.you {
+        width: 24px;
+        height: 24px;
+        background: #1674cb;
+        border: 4px solid white;
+        box-shadow: 0 0 0 2px #1674cb;
+      }
+      .pending-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+      }
+      .pending-item {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        text-align: left;
+        flex: 1 1 240px;
+        background: #fff;
+      }
+      .pending-item small {
+        display: block;
+        color: #79613c;
+        font-weight: 400;
+      }
+      .leaflet-popup-content {
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .leaflet-popup-content button {
+        margin-top: 8px;
+        width: 100%;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      @media (max-width: 600px) {
+        main {
+          padding: 14px;
+        }
+        .controls {
+          grid-template-columns: 1fr;
+          gap: 14px;
+        }
+        #map {
+          height: 48vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">FrankenApp · River Place test</p>
+        <h1>River Place Shops</h1>
+        <p class="intro">A little help finding your way around.</p>
+      </header>
+      <section class="panel controls" aria-label="Map controls">
+        <div>
+          <label for="locate">Your location</label>
+          <div class="actions">
+            <button id="locate" type="button">◎ You Are Here</button
+            ><button id="stop" type="button" hidden>Stop location</button
+            ><button id="reset" type="button">Show shops</button>
+          </div>
+          <p id="location-status" class="small" role="status">
+            Tap You Are Here to share your live location. Use HTTPS or localhost
+            for GPS.
+          </p>
+        </div>
+        <div>
+          <label for="destination">Where would you like to go?</label>
+          <select id="destination"></select>
+          <a
+            id="google"
+            class="button"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open walking directions in Google Maps (new tab)"
+            >Open in Google Maps ↗</a
+          >
+        </div>
+      </section>
+      <div id="map" aria-label="Map of Frankenmuth River Place Shops">
+        <p id="load-error" class="panel" role="status">
+          Loading the map… Internet access is needed for map tiles and Leaflet.
+        </p>
+      </div>
+      <p id="route-status" class="small" role="status"></p>
+      <div
+        id="pending"
+        class="pending-list"
+        aria-label="Temporary markers awaiting placement"
+      ></div>
+      <p class="small">
+        Dashed line = straight-line guide, not a verified walking path. Use
+        Google Maps for walking directions. Temporary markers below are
+        unplaced, not map locations.
+      </p>
+      <noscript><p>This map needs JavaScript enabled.</p></noscript>
+    </main>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script>
+      (() => {
+        "use strict";
+        // Coordinates copied from the Desktop Frankenmuth 5 MASTER SCRIPT.txt.
+        // This separate test does not load or change either master script.
+        const CENTER = [43.323577, -83.739647];
+        // Set coords to [latitude, longitude] only after placement is confirmed.
+        // Unplaced symbols live in a separate tray so they cannot imply invented positions.
+        const destinations = [
+          {
+            id: "shops",
+            name: "River Place Shops",
+            symbol: "🛍",
+            theme: "",
+            coords: CENTER,
+            note: "General site marker from FrankenApp; not a confirmed entrance.",
+          },
+          {
+            id: "restroom-1",
+            name: "Restroom 1",
+            symbol: "&#128699;",
+            theme: "restroom",
+            coords: [43.323835, -83.7396863],
+            note: "Upper restroom near SugarRush / Jerky Joint. Approximate placement from your red screenshot mark.",
+          },
+          {
+            id: "restroom-2",
+            name: "Restroom 2",
+            symbol: "&#128699;",
+            theme: "restroom",
+            coords: [43.3233698, -83.7390109],
+            note: "Lower/right restroom near Cass River Bar & Grill. Approximate placement from your red screenshot mark.",
+          },
+          {
+            id: "featured",
+            name: "SugarRush Sweets & Treats",
+            symbol: "&#127852;",
+            theme: "candy",
+            coords: [43.3237881, -83.7395458],
+            category: "Shopping / sweets",
+            description:
+              "A sweet stop for candy and treats at River Place Shops.",
+            note: "Approximate placement at the SugarRush symbol in your map screenshot.",
+          },
+          {
+            id: "jerky-joint",
+            name: "Jerky Joint",
+            symbol: "&#129385;",
+            theme: "small-shop",
+            coords: [43.3238575, -83.7393988],
+            note: "Approximate placement at the Jerky Joint label in the rendered map.",
+          },
+          {
+            id: "cherry-republic",
+            name: "Cherry Republic",
+            symbol: "&#127826;",
+            theme: "small-shop",
+            coords: [43.32374, -83.73999],
+            note: "Approximate placement beside the Cherry Republic label in the rendered map.",
+          },
+          {
+            id: "woodys",
+            name: "Woody's",
+            symbol: "&#9876;&#65039;",
+            theme: "small-shop",
+            coords: [43.323096, -83.739885],
+            note: "Approximate C-1 placement based on the official River Place directory map. Needs adjustment to the exact storefront.",
+          },
+          {
+            id: "norlins",
+            name: "Norlin's Beignets & Coffee",
+            symbol: "&#9749;",
+            theme: "small-shop",
+            coords: [43.323577, -83.73903],
+            note: "Approximate placement at the matching shop symbol in your River Place map screenshot.",
+          },
+          {
+            id: "charlins",
+            name: "Charlins Book Nook",
+            symbol: "&#128218;",
+            theme: "small-shop",
+            coords: [43.323431, -83.738777],
+            note: "Approximate placement at the matching shop symbol in your River Place map screenshot.",
+          },
+          {
+            id: "trolley",
+            name: "Golden Ticket Trolley",
+            symbol: "🚋",
+            theme: "gold",
+            coords: [43.32299, -83.7386],
+            note: "Existing FrankenApp location; confirm the exact boarding stop.",
+          },
+          {
+            id: "boat",
+            name: "Bavarian Belle Riverboat",
+            symbol: "⛴",
+            theme: "water",
+            coords: [43.324662306, -83.739581525],
+            note: "Approximate Riverboat marker from FrankenApp; confirm the Bavarian Belle boarding dock.",
+          },
+        ];
+        const $ = (id) => document.getElementById(id);
+        const select = $("destination");
+        let map,
+          line,
+          userMarker,
+          accuracyCircle,
+          watchId = null,
+          position = null,
+          generation = 0;
+        const markers = new Map();
+        destinations.forEach((d) => {
+          const option = document.createElement("option");
+          option.value = d.id;
+          option.textContent =
+            d.name +
+            (!d.coords
+              ? " — unplaced"
+              : d.id === "boat"
+                ? " — approximate"
+                : "");
+          select.append(option);
+          if (!d.coords) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "pending-item";
+            button.innerHTML =
+              '<span class="symbol pending" aria-hidden="true">' +
+              d.symbol +
+              "</span><span>" +
+              d.name +
+              "<small>Temporary · placement needed</small></span>";
+            button.addEventListener("click", () => {
+              select.value = d.id;
+              updateDestination();
+            });
+            $("pending").append(button);
+          }
+        });
+        function selected() {
+          return destinations.find((d) => d.id === select.value);
+        }
+        function refresh() {
+          const d = selected();
+          if (line) {
+            line.remove();
+            line = null;
+          }
+          const link = $("google");
+          link.setAttribute("aria-disabled", String(!d.coords));
+          if (!d.coords) {
+            link.removeAttribute("href");
+            $("route-status").textContent =
+              d.note + " Directions will be available after placement.";
+            return;
+          }
+          // https://developers.google.com/maps/documentation/urls/get-started
+          const url = new URL("https://www.google.com/maps/dir/");
+          url.searchParams.set("api", "1");
+          url.searchParams.set("destination", d.coords.join(","));
+          url.searchParams.set("travelmode", "walking");
+          if (position) url.searchParams.set("origin", position.join(","));
+          link.href = url.href;
+          if (position && map) {
+            line = L.polyline([position, d.coords], {
+              color: "#285c3b",
+              weight: 4,
+              dashArray: "8 9",
+              interactive: false,
+            }).addTo(map);
+            $("route-status").textContent =
+              "Straight-line guide to " + d.name + ". " + d.note;
+          } else {
+            $("route-status").textContent =
+              d.note + " Enable location to see a straight-line guide.";
+          }
+        }
+        function updateDestination() {
+          refresh();
+          const d = selected();
+          if (map) map.closePopup();
+          if (map && d.coords) {
+            if (position)
+              map.fitBounds([position, d.coords], {
+                padding: [40, 40],
+                maxZoom: 18,
+              });
+            else map.panTo(d.coords);
+            markers.get(d.id)?.openPopup();
+          }
+        }
+        select.addEventListener("change", updateDestination);
+        $("google").addEventListener("click", (e) => {
+          if (!selected().coords) e.preventDefault();
+        });
+        if (typeof L !== "undefined") {
+          $("load-error").remove();
+          // Fit only the initial view around River Place, including Main Street, trolley and riverboat.
+          map = L.map("map", { scrollWheelZoom: false, zoomSnap: 0 });
+          map.fitBounds(
+            [
+              [43.32299, -83.7403],
+              [43.324662306, -83.7385],
+            ],
+            { padding: [22, 22], maxZoom: 19 },
+          );
+          map.options.zoomSnap = 1;
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          }).addTo(map);
+          L.control.scale({ imperial: true, metric: true }).addTo(map);
+          destinations
+            .filter((d) => d.coords && d.id !== "shops")
+            .forEach((d) => {
+              const content = document.createElement("div");
+              const title = document.createElement("strong");
+              title.textContent = d.name;
+              const note = document.createElement("p");
+              note.textContent = d.note;
+              const choose = document.createElement("button");
+              choose.type = "button";
+              choose.textContent = "Choose destination";
+              choose.addEventListener("click", () => {
+                select.value = d.id;
+                updateDestination();
+              });
+              content.append(title, note, choose);
+              if (d.id === "featured") {
+                const category = document.createElement("div");
+                category.className = "small";
+                category.textContent = d.category;
+                const description = document.createElement("p");
+                description.textContent = d.description;
+                note.className = "small";
+                choose.textContent = "Get Directions";
+                content.replaceChildren(
+                  title,
+                  category,
+                  description,
+                  note,
+                  choose,
+                );
+              }
+              markers.set(
+                d.id,
+                L.marker(d.coords, {
+                  title: d.name,
+                  alt: d.name,
+                  icon: L.divIcon({
+                    className: "",
+                    html:
+                      '<span class="symbol ' +
+                      d.theme +
+                      '">' +
+                      d.symbol +
+                      "</span>",
+                    iconSize: [42, 42],
+                    iconAnchor: [21, 21],
+                    popupAnchor: [0, -23],
+                  }),
+                })
+                  .addTo(map)
+                  .bindTooltip(d.name)
+                  .bindPopup(content),
+              );
+            });
+        } else {
+          $("load-error").textContent =
+            "Map could not load. Check your internet connection and reload. Google Maps links remain available.";
+          $("locate").disabled = true;
+          $("reset").disabled = true;
+        }
+        $("reset").addEventListener("click", () => {
+          $("destination").value = "shops";
+          refresh();
+          if (map) {
+            map.closePopup();
+            map.setView(CENTER, 18);
+          }
+        });
+        function stopTracking(message) {
+          generation++;
+          if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+          watchId = null;
+          position = null;
+          if (userMarker) userMarker.remove();
+          if (accuracyCircle) accuracyCircle.remove();
+          userMarker = null;
+          accuracyCircle = null;
+          $("locate").disabled = false;
+          $("stop").hidden = true;
+          $("location-status").textContent = message;
+          refresh();
+        }
+        $("stop").addEventListener("click", () =>
+          stopTracking(
+            "Location stopped. Your location and guide have been cleared.",
+          ),
+        );
+        $("locate").addEventListener("click", () => {
+          if (!window.isSecureContext || !navigator.geolocation) {
+            $("location-status").textContent =
+              "Live location needs a supported browser on HTTPS or localhost.";
+            return;
+          }
+          $("locate").disabled = true;
+          $("stop").hidden = false;
+          $("location-status").textContent =
+            "Waiting for location permission and a GPS fix…";
+          const activeGeneration = ++generation;
+          let firstFix = true;
+          watchId = navigator.geolocation.watchPosition(
+            (fix) => {
+              if (activeGeneration !== generation) return;
+              position = [fix.coords.latitude, fix.coords.longitude];
+              if (!userMarker) {
+                userMarker = L.marker(position, {
+                  title: "You Are Here",
+                  alt: "You Are Here",
+                  zIndexOffset: 1000,
+                  icon: L.divIcon({
+                    className: "",
+                    html: '<span class="symbol you"></span>',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12],
+                  }),
+                })
+                  .addTo(map)
+                  .bindTooltip("You Are Here");
+                accuracyCircle = L.circle(position, {
+                  radius: fix.coords.accuracy,
+                  color: "#1674cb",
+                  weight: 1,
+                  fillOpacity: 0.08,
+                  interactive: false,
+                }).addTo(map);
+              } else {
+                userMarker.setLatLng(position);
+                accuracyCircle
+                  .setLatLng(position)
+                  .setRadius(fix.coords.accuracy);
+              }
+              $("location-status").textContent =
+                "Live location on · accuracy about " +
+                Math.round(fix.coords.accuracy) +
+                " m. Blue circle shows GPS uncertainty.";
+              refresh();
+              if (firstFix) {
+                firstFix = false;
+                map.panTo(position);
+              }
+            },
+            (error) => {
+              if (activeGeneration !== generation) return;
+              const messages = {
+                1: "Location permission denied. Allow location in browser settings, then try again.",
+                2: "Location unavailable. Check your device location settings and try again.",
+                3: "Location timed out. Move to an open area and try again.",
+              };
+              stopTracking(
+                messages[error.code] ||
+                  "Unable to get location. Please try again.",
+              );
+            },
+            { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 },
+          );
+        });
+        window.addEventListener("pagehide", () =>
+          stopTracking("Location stopped. Tap You Are Here to restart."),
+        );
+        refresh();
+      })();
+    </script>
+  </body>
+</html>
